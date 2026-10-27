@@ -6,3 +6,9 @@ node_modules
 !.env.example
 npm-debug.log*
 *.tsbuildinfo
+backend
+scripts
+deployment.yaml
+service.yaml
+README.md
+API_CONTRACT.md

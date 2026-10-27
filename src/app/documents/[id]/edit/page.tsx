@@ -1,60 +1,63 @@
+"use client";
+
 import Link from "next/link";
-import { notFound, redirect } from "next/navigation";
-import { Status } from "@prisma/client";
-import { auth } from "@/auth";
-import { prisma } from "@/lib/prisma";
-import { saveDocumentVersion } from "@/app/documents/actions";
+import { useParams, useRouter } from "next/navigation";
+import { useEffect, useState, type FormEvent } from "react";
+import { apiRequest, formatApiError, isUnauthenticated, type DocumentDetail } from "@/lib/api";
+import { ErrorState, LoadingState } from "@/components/api-state";
 
-type EditDocumentPageProps = {
-  params: Promise<{ id: string }>;
-  searchParams: Promise<{ error?: string }>;
-};
+export default function EditDocumentPage() {
+  const { id } = useParams<{ id: string }>();
+  const router = useRouter();
+  const [document, setDocument] = useState<DocumentDetail | null>(null);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [pending, setPending] = useState(false);
 
-export default async function EditDocumentPage({ params, searchParams }: EditDocumentPageProps) {
-  const session = await auth();
-  if (!session?.user) redirect("/login");
-  const [{ id }, { error }] = await Promise.all([params, searchParams]);
-  const document = await prisma.document.findUnique({
-    where: { id },
-    include: { currentVersion: true },
-  });
-  if (!document) notFound();
-  if (document.createdById !== session.user.id) redirect(`/documents/${id}?error=forbidden`);
-  if (document.status !== Status.DRAFT) redirect(`/documents/${id}?error=locked`);
+  useEffect(() => {
+    let active = true;
+    apiRequest<DocumentDetail>(`/documents/${encodeURIComponent(id)}`)
+      .then((result) => { if (active) setDocument(result); })
+      .catch((reason) => {
+        if (!active) return;
+        if (isUnauthenticated(reason)) router.replace(`/login?callbackUrl=${encodeURIComponent(`/documents/${id}/edit`)}`);
+        else setError(formatApiError(reason));
+      })
+      .finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
+  }, [id, router]);
 
-  return (
-    <main className="workspace-shell editor-shell">
-      <Link className="back-link" href={`/documents/${id}`}>← Batal dan kembali</Link>
-      <section className="workspace-heading editor-heading">
-        <div>
-          <p className="eyebrow">Revisi dokumen · versi {document.currentVersion?.nomor ?? 0}</p>
-          <h1>Edit draf</h1>
-          <p className="workspace-description">Simpan revisi sebagai versi baru. Versi sebelumnya tetap tersimpan.</p>
-        </div>
-      </section>
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setPending(true);
+    setError("");
+    const form = new FormData(event.currentTarget);
+    try {
+      await apiRequest(`/documents/${encodeURIComponent(id)}/versions`, {
+        method: "POST",
+        body: JSON.stringify({ judul: form.get("judul"), isi: form.get("isi"), ringkasan: form.get("ringkasan") }),
+      });
+      router.push(`/documents/${id}`);
+    } catch (reason) {
+      if (isUnauthenticated(reason)) router.replace(`/login?callbackUrl=${encodeURIComponent(`/documents/${id}/edit`)}`);
+      else setError(formatApiError(reason));
+      setPending(false);
+    }
+  }
 
-      {error ? <p className="form-error" role="alert">{error === "validation" ? "Judul, isi, dan ringkasan perubahan wajib diisi." : error === "conflict" ? "Versi baru saja disimpan oleh pengguna lain. Muat ulang lalu coba lagi." : "Perubahan gagal disimpan. Periksa koneksi database lalu coba lagi."}</p> : null}
+  if (loading) return <main className="workspace-shell editor-shell"><LoadingState label="Memuat draf..." /></main>;
+  if (error || !document) return <main className="workspace-shell editor-shell"><ErrorState message={error || "Dokumen tidak ditemukan."} onRetry={() => window.location.reload()} /></main>;
+  if (!document.canEdit || document.status !== "DRAFT") return <main className="workspace-shell editor-shell"><ErrorState message="Anda tidak dapat mengubah dokumen ini." /><Link className="button button-outline" href={`/documents/${id}`}>Kembali ke dokumen</Link></main>;
 
-      <form action={saveDocumentVersion} className="document-form">
-        <input type="hidden" name="id" value={document.id} />
-        <label className="field">
-          Judul dokumen
-          <input name="judul" required minLength={3} maxLength={180} defaultValue={document.judul} />
-        </label>
-        <label className="field">
-          Ringkasan perubahan
-          <input name="ringkasan" required maxLength={500} placeholder="Contoh: Memperjelas tahapan pelaksanaan" />
-        </label>
-        <label className="field">
-          Isi dokumen
-          <textarea name="isi" required rows={18} defaultValue={document.currentVersion?.isi ?? ""} />
-          <small>Setiap penyimpanan membuat versi baru. Versi lama tidak ditimpa.</small>
-        </label>
-        <div className="form-actions">
-          <Link className="button button-outline" href={`/documents/${id}`}>Batal</Link>
-          <button className="button button-primary" type="submit">Simpan versi baru</button>
-        </div>
-      </form>
-    </main>
-  );
+  return <main className="workspace-shell editor-shell">
+    <Link className="back-link" href={`/documents/${id}`}>← Batal dan kembali</Link>
+    <section className="workspace-heading editor-heading"><div><p className="eyebrow">Revisi dokumen · versi {document.currentVersion?.nomor ?? 0}</p><h1>Edit draf</h1><p className="workspace-description">Simpan revisi sebagai versi baru. Versi sebelumnya tetap tersimpan.</p></div></section>
+    {error ? <p className="form-error" role="alert">{error}</p> : null}
+    <form onSubmit={handleSubmit} className="document-form">
+      <label className="field">Judul dokumen<input name="judul" required minLength={3} maxLength={180} defaultValue={document.judul} /></label>
+      <label className="field">Ringkasan perubahan<input name="ringkasan" required maxLength={500} placeholder="Contoh: Memperjelas tahapan pelaksanaan" /></label>
+      <label className="field">Isi dokumen<textarea name="isi" required rows={18} defaultValue={document.currentVersion?.isi ?? ""} /><small>Setiap penyimpanan membuat versi baru. Versi lama tidak ditimpa.</small></label>
+      <div className="form-actions"><Link className="button button-outline" href={`/documents/${id}`}>Batal</Link><button className="button button-primary" type="submit" disabled={pending}>{pending ? "Menyimpan..." : "Simpan versi baru"}</button></div>
+    </form>
+  </main>;
 }

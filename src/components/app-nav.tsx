@@ -1,31 +1,42 @@
+"use client";
+
 import Link from "next/link";
-import { signOut } from "@/auth";
+import { useEffect, useState } from "react";
+import { apiRequest, type User } from "@/lib/api";
 
-type AppNavProps = { session: Promise<{ user?: { name?: string | null; email?: string | null } } | null> };
+export function AppNav() {
+  const [user, setUser] = useState<User | null>(null);
+  const [checked, setChecked] = useState(false);
+  const [signOutError, setSignOutError] = useState("");
 
-export async function AppNav({ session }: AppNavProps) {
-  const currentSession = await session;
-  const workspaceHref = currentSession ? "/documents" : "/";
+  useEffect(() => {
+    apiRequest<{ user: User | null }>("/auth/session")
+      .then((session) => setUser(session.user))
+      .catch(() => setUser(null))
+      .finally(() => setChecked(true));
+  }, []);
+
+  async function handleSignOut() {
+    try {
+      await apiRequest<void>("/auth/logout", { method: "POST" });
+      window.location.assign("/");
+    } catch {
+      setSignOutError("Belum dapat keluar. Coba lagi.");
+    }
+  }
 
   return (
     <header className="app-nav">
       <div className="nav-inner">
-        <Link className="brand" href={workspaceHref} aria-label={currentSession ? "Arsipin, ruang kerja" : "Arsipin, beranda"}>
+        <Link className="brand" href={user ? "/documents" : "/"} aria-label={user ? "Arsipin, ruang kerja" : "Arsipin, beranda"}>
           <span className="brand-mark" aria-hidden="true">A</span>
           <span>Arsipin</span>
         </Link>
         <nav className="nav-links" aria-label="Navigasi utama">
-          {currentSession ? (
-            <Link href="/documents" aria-current="page">Dokumen</Link>
-          ) : (
-            <>
-              <Link href="/#alur">Alur kerja</Link>
-              <Link href="/#prinsip">Prinsip</Link>
-            </>
-          )}
+          {user ? <Link href="/documents" aria-current="page">Dokumen</Link> : <><Link href="/#alur">Alur kerja</Link><Link href="/#prinsip">Prinsip</Link></>}
         </nav>
         <div className="nav-actions">
-          {currentSession ? <><span className="user-name">{currentSession.user?.name ?? currentSession.user?.email}</span><form action={async () => { "use server"; await signOut({ redirectTo: "/" }); }}><button className="button button-quiet" type="submit">Keluar</button></form></> : <Link className="button button-outline" href="/login">Masuk</Link>}
+          {!checked ? <span className="user-name" role="status">Memuat sesi...</span> : user ? <><span className="user-name">{user.name ?? user.email}</span><button className="button button-quiet" type="button" onClick={handleSignOut}>Keluar</button>{signOutError ? <span role="alert">{signOutError}</span> : null}</> : <Link className="button button-outline" href="/login">Masuk</Link>}
         </div>
       </div>
     </header>

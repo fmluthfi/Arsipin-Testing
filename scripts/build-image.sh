@@ -7,7 +7,8 @@ command -v docker >/dev/null 2>&1 || {
 }
 
 project_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-image_tag="${1:-latest}"
+image_tag="${1:-0.1.0}"
+api_url="${NEXT_PUBLIC_API_URL:-http://localhost:4000/api}"
 
-docker build --pull --tag "arsipin:${image_tag}" "$project_root"
+docker build --pull --build-arg "NEXT_PUBLIC_API_URL=${api_url}" --tag "arsipin:${image_tag}" "$project_root"
 printf 'Image berhasil dibuat: arsipin:%s\n' "$image_tag"
