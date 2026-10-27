@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { LandingAnimations } from "@/components/landing-animations";
 
 const workflow = [
   { number: "01", title: "Tulis", description: "Mulai dari editor Markdown yang ringan dan mudah dibaca." },
@@ -10,6 +11,7 @@ const workflow = [
 export default function Home() {
   return (
     <main className="page-shell home-page">
+      <LandingAnimations />
       <div className="background-stamp" aria-hidden="true">ARSIPIN / JUKNIS / RIWAYAT VERSI</div>
       <section className="hero-section" aria-labelledby="hero-title">
         <div className="hero-panel">
