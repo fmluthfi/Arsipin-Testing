@@ -27,7 +27,7 @@ export function AppNav() {
 
   return (
     <header className="app-nav">
-      <div className="nav-inner">
+      <div className={`nav-inner${user ? " nav-inner-authenticated" : ""}`}>
         <Link className="brand" href={user ? "/documents" : "/"} aria-label={user ? "Arsipin, ruang kerja" : "Arsipin, beranda"}>
           <span className="brand-mark" aria-hidden="true">A</span>
           <span>Arsipin</span>

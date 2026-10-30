@@ -21,9 +21,11 @@ button { font: inherit; }
 
 .app-nav { position: sticky; top: 0; z-index: 10; border-bottom: 1px solid rgba(211, 224, 233, .9); background: rgba(241, 246, 250, .92); backdrop-filter: blur(14px); }
 .nav-inner { max-width: 1240px; margin: 0 auto; padding: 16px 32px; display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 32px; }
+.nav-inner-authenticated { grid-template-columns: auto minmax(0, 1fr) auto; }
 .brand { display: flex; align-items: center; gap: 11px; flex-shrink: 0; font-size: 17px; font-weight: 700; letter-spacing: -.03em; }
 .brand-mark { display: grid; place-items: center; width: 34px; height: 34px; color: #fbfdff; background: var(--accent); border-radius: 9px 9px 9px 2px; font-size: 15px; }
-.nav-links { display: flex; align-items: center; gap: 24px; color: var(--muted); font-size: 13px; font-weight: 700; }
+.nav-links { display: flex; align-items: center; justify-self: center; justify-content: center; gap: 24px; color: var(--muted); font-size: 13px; font-weight: 700; }
+.nav-inner-authenticated .nav-links { justify-self: start; }
 .nav-links a:hover, .nav-links a:focus-visible { color: var(--foreground); }
 .nav-actions { display: flex; align-items: center; justify-self: end; gap: 12px; color: var(--muted); font-size: 13px; }
 .user-name { max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -193,8 +195,9 @@ h1 { margin: 20px 0 24px; max-width: 720px; font-size: clamp(46px, 6.5vw, 84px);
   .principles-section { gap: 48px; }
 }
 @media (max-width: 640px) {
-  .nav-inner { display: flex; padding: 12px 20px 0; gap: 0 14px; flex-wrap: wrap; }
+  .nav-inner { display: flex; padding: 12px 20px; gap: 14px; }
   .nav-links { order: 3; width: 100%; justify-content: center; gap: 28px; margin: 10px 0 0; padding: 10px 0; border-top: 1px solid rgba(211, 224, 233, .9); font-size: 12px; }
+  .nav-inner-authenticated .nav-links { order: 0; width: auto; margin: 0; padding: 0; border: 0; }
   .nav-actions { margin-left: auto; }
   .user-name { display: none; }
   .page-shell { padding: 64px 20px 56px; }

@@ -15,7 +15,6 @@ export default function Home() {
       <div className="background-stamp" aria-hidden="true">ARSIPIN / JUKNIS / RIWAYAT VERSI</div>
       <section className="hero-section" aria-labelledby="hero-title">
         <div className="hero-panel">
-          <p className="eyebrow">Ruang kerja dokumen internal</p>
           <h1 id="hero-title">Dokumen Juknis yang tertata, dari draf hingga terbit.</h1>
           <p className="hero-copy">Arsipin membantu tim menulis, merevisi, meninjau, dan menjaga riwayat setiap perubahan dalam satu tempat.</p>
           <div className="hero-actions">
@@ -40,11 +39,10 @@ export default function Home() {
         <div className="workflow-list">{workflow.map((item) => <article className="workflow-item" key={item.number}><span className="card-index">{item.number}</span><h3>{item.title}</h3><p>{item.description}</p></article>)}</div>
       </section>
       <section className="landing-section principles-section" id="prinsip" tabIndex={-1} aria-labelledby="principles-title">
-        <div className="principle-intro"><p className="eyebrow">Cara Arsipin bekerja</p><h2 id="principles-title">Jejak perubahan tetap utuh, keputusan tetap jelas.</h2></div>
+        <div className="principle-intro"><h2 id="principles-title">Jejak perubahan tetap utuh, keputusan tetap jelas.</h2></div>
         <div className="principle-list"><p><strong>Riwayat append-only.</strong> Penyimpanan baru tidak menimpa versi sebelumnya.</p><p><strong>Review berbasis versi.</strong> Yang ditinjau selalu versi tertentu, bukan isi yang kebetulan paling baru.</p><p><strong>Terbit dengan kendali.</strong> Versi terbit tetap terkunci sampai revisi baru melewati alur yang sama.</p></div>
       </section>
       <section className="closing-section" aria-labelledby="closing-title">
-        <p className="eyebrow">Ruang kerja yang siap ditelusuri</p>
         <h2 id="closing-title">Mulai dari satu dokumen yang ingin Anda rapikan.</h2>
         <Link className="button button-primary" href="/login">Masuk ke Arsipin</Link>
       </section>
