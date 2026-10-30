@@ -1,22 +1,101 @@
 # Arsipin
 
-Frontend Next.js untuk Arsipin. Aplikasi ini tidak mengakses PostgreSQL atau Prisma secara langsung; semua autentikasi dan data diminta melalui backend API. Source frontend berada langsung di root repository, terutama pada folder `src/`.
+Arsipin adalah aplikasi web untuk menyusun dan mengelola dokumen **Petunjuk Teknis (Juknis)**. Dokumen dapat dimulai sebagai draf, diperbarui sebagai versi baru, lalu dilacak berdasarkan statusnya. Tujuannya: isi terbaru mudah ditemukan tanpa kehilangan jejak perubahan sebelumnya.
 
-## Menjalankan lokal
+Repository ini berisi **frontend** Arsipin. Autentikasi, penyimpanan dokumen, versi, dan otorisasi ditangani oleh backend API terpisah; frontend tidak mengakses PostgreSQL atau Prisma secara langsung.
 
-1. Salin `.env.example` menjadi `.env.local`.
-2. Atur `NEXT_PUBLIC_API_URL` ke alamat API, misalnya `http://localhost:4000/api`.
-3. Jalankan `npm install`, lalu `npm run dev`.
-4. Buka `http://localhost:3000`.
+## Fitur frontend
 
-Kontrak endpoint yang diperlukan ada di [API_CONTRACT.md](./API_CONTRACT.md). Sebelum backend tersedia, halaman yang memerlukan data akan menampilkan status backend belum dapat dihubungi.
+- Masuk dan mendaftar dengan akun lokal; masuk dengan Google melalui backend.
+- Melihat daftar dokumen, mencari berdasarkan judul, memfilter status, dan berpindah halaman.
+- Membuat draf Juknis dengan isi Markdown.
+- Melihat dokumen dan menyimpan revisi sebagai versi baru, beserta ringkasan perubahan. Versi sebelumnya tidak ditimpa.
+- Menampilkan status dokumen: draf, dalam review, disetujui, dan terbit.
 
-## Image Docker
+> **Status pengembangan:** halaman `/reviews` saat ini masih placeholder. Antrean review dan alur persetujuan belum tersedia di frontend.
 
-Build dari root repository dan berikan URL API publik sebagai build argument:
+## Teknologi
+
+- Next.js 15 dengan App Router
+- React 19 dan TypeScript
+- GSAP untuk animasi halaman
+- Backend API dengan sesi berbasis cookie
+
+## Menjalankan secara lokal
+
+### Prasyarat
+
+- Node.js 22 dan npm
+- Backend Arsipin yang dapat diakses dari browser
+
+### Langkah
+
+```bash
+git clone https://github.com/fmluthfi/Arsipin-Testing.git
+cd Arsipin-Testing
+npm install
+```
+
+Buat `.env.local` di root project dan isi alamat API:
+
+```env
+NEXT_PUBLIC_API_URL=http://localhost:4000/api
+```
+
+Ganti URL tersebut jika backend berjalan di alamat lain. Nilainya adalah prefix API yang digunakan frontend. Karena variabel ini diawali `NEXT_PUBLIC_`, nilainya dimasukkan ke bundle browser dan **bukan tempat untuk menyimpan secret**.
+
+Jalankan frontend:
+
+```bash
+npm run dev
+```
+
+Buka [http://localhost:3000](http://localhost:3000).
+
+Backend harus berjalan agar login dan halaman yang memerlukan data dapat digunakan. Jika API belum dapat dihubungi, aplikasi menampilkan pesan error yang sesuai.
+
+## Halaman utama
+
+| Route | Fungsi |
+| --- | --- |
+| `/` | Pengenalan Arsipin dan gambaran alur kerja dokumen |
+| `/login` | Masuk atau mendaftar |
+| `/documents` | Daftar, pencarian, dan filter dokumen |
+| `/documents/new` | Membuat draf Juknis |
+| `/documents/[id]` | Melihat isi dan status dokumen |
+| `/documents/[id]/edit` | Membuat versi baru dari draf yang dapat diedit |
+| `/reviews` | Placeholder untuk fitur review yang direncanakan |
+
+## Integrasi backend
+
+Frontend mengirim request ke `NEXT_PUBLIC_API_URL` dengan cookie sesi (`credentials: include`). Karena itu, backend perlu mengizinkan origin frontend melalui CORS dan mengizinkan credentials. Backend juga bertanggung jawab memvalidasi sesi, hak akses, status dokumen, dan seluruh input.
+
+Endpoint dan format request/response yang dipakai frontend didokumentasikan di [API_CONTRACT.md](./API_CONTRACT.md).
+
+## Build dan production
+
+Validasi build lokal:
+
+```bash
+npm run build
+```
+
+Jalankan hasil build:
+
+```bash
+npm run start
+```
+
+Untuk membuat image Docker dari root repository, berikan URL API saat build:
 
 ```powershell
 docker build --build-arg NEXT_PUBLIC_API_URL=https://api.example.com/api -t arsipin:0.1.0 .
 ```
 
-URL API dimasukkan ke bundle browser saat image dibangun. Backend harus mengizinkan origin frontend dan cookie credentials.
+Jalankan image:
+
+```powershell
+docker run --rm -p 3000:3000 arsipin:0.1.0
+```
+
+`NEXT_PUBLIC_API_URL` dibundel saat image dibangun. Jika alamat API berubah, build ulang image dengan nilai yang baru. Pastikan backend mengizinkan origin frontend dan cookie credentials.
