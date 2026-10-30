@@ -85,3 +85,17 @@ Jalankan hasil build:
 ```bash
 npm run start
 ```
+
+Untuk membuat image Docker dari root repository, berikan URL API saat build:
+
+```powershell
+docker build --build-arg NEXT_PUBLIC_API_URL=https://api.example.com/api -t arsipin:0.1.0 .
+```
+
+Jalankan image:
+
+```powershell
+docker run --rm -p 3000:3000 arsipin:0.1.0
+```
+
+`NEXT_PUBLIC_API_URL` dibundel saat image dibangun. Jika alamat API berubah, build ulang image dengan nilai yang baru. Pastikan backend mengizinkan origin frontend dan cookie credentials.

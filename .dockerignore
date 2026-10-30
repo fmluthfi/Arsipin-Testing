@@ -1,0 +1,14 @@
+node_modules
+.next
+.git
+.env
+.env.*
+!.env.example
+npm-debug.log*
+*.tsbuildinfo
+backend
+scripts
+deployment.yaml
+service.yaml
+README.md
+API_CONTRACT.md
